@@ -5,6 +5,7 @@ import org.apache.spark.sql.SparkSession
 trait SharedSparkSession {
   val spark = SparkSession.builder
     .appName("SparkPerformanceTester")
+    .master("local")
     .enableHiveSupport()
     .getOrCreate()
 

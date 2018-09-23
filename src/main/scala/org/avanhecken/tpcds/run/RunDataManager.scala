@@ -8,7 +8,7 @@ trait RunDataManager {
   /**
     *  Check if the run does not correspond to an already existing one.
     *
-    * @param name
+    * @param run
     * @return
     */
   def exists(run: Run): Boolean

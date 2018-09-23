@@ -24,9 +24,13 @@ case class Query(id: Short, businessQuestion: String, sqlFileLocation: File, ans
   }
 
   def execute(): QueryResult = {
-    QueryResult(
+    print(s"INFO Run query '$id' ... ")
+    val result = QueryResult(
       this,
       statements.zipWithIndex.map { case (statement, index) => statement.execute(index) }
     )
+    println(s"INFO Finished query '$id'.")
+
+    result
   }
 }

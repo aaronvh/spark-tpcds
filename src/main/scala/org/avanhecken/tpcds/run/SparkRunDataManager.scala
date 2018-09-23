@@ -52,7 +52,7 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
   /**
     * Check if the run corresponds to an already existing one.
     *
-    * @param name
+    * @param run
     * @return true if run exists else false
     */
   override def exists(run: Run): Boolean = {

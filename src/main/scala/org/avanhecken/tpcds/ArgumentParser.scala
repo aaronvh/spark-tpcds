@@ -5,8 +5,12 @@ object ArgumentParser {
 
   def parse(args: Array[String]): Args = {
     args match {
-      case Array(name, description, db, ids) => Map("name" -> name, "description" -> description, "db" -> db, "ids" -> ids)
-      case Array(name, description, db) => Map("name" -> name, "description" -> description, "db" -> db)
+      case Array(name, description, db, ids) =>
+        println(s"TRACE Parsed args are: name -> '$name', description -> '$description', db -> '$db', ids -> '$ids'")
+        Map("name" -> name, "description" -> description, "db" -> db, "ids" -> ids)
+      case Array(name, description, db) =>
+        println(s"TRACE Parsed args are: name -> '$name', description -> '$description', db -> '$db'")
+        Map("name" -> name, "description" -> description, "db" -> db)
       case _ => throw new RuntimeException(
         """Invalid arguments!
           |  Required (in this order): name, description, database

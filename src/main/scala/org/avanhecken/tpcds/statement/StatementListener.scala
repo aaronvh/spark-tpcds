@@ -14,5 +14,5 @@ class StatementListener(statement: Statement) extends SparkListener {
     }
   }
 
-  def getStatementResult(): StatementResult = StatementResult(statement, startEvent, endEvent)
+  def getStatementResult: StatementResult = StatementResult(statement, startEvent, endEvent)
 }

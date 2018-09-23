@@ -5,7 +5,13 @@ import scala.org.avanhecken.tpcds.ArgumentParser
 
 object SparkTPCDS {
   def main(args: Array[String]): Unit = {
-    Run(ArgumentParser.parse(args)).execute()
+    try {
+      Run(ArgumentParser.parse(args)).execute()
+    } catch {
+      case e: Exception =>
+        println(s"ERROR ${e.getMessage}\n${e.printStackTrace()}")
+        System.exit(1)
+    }
   }
 }
 

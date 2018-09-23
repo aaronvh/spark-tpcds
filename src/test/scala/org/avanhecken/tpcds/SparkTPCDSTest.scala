@@ -1,21 +1,8 @@
 package org.avanhecken.tpcds
 
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.SparkSession
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
-class SparkTPCDSTest extends FlatSpec with Matchers with BeforeAndAfterAll {
-  var spark: SparkSession = _
-  var sparkContext: SparkContext = _
-
-  override def beforeAll(): Unit = {
-    spark = SparkSession.builder
-      .appName("SparkTPCDSTest")
-      .master("local")
-      .enableHiveSupport()
-      .getOrCreate()
-  }
-
+class SparkTPCDSTest extends FlatSpec with Matchers with BeforeAndAfterAll with SharedSparkSession {
   override def afterAll(): Unit = {
     spark.close()
   }
