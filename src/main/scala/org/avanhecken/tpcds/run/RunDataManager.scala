@@ -6,10 +6,17 @@ trait RunDataManager {
   val args: Args
 
   /**
+    * Check if the run table exist and if the schema is correct.
+    *
+    * @return the initialized Run DataManager
+    */
+  def initialize(): RunDataManager
+
+  /**
     *  Check if the run does not correspond to an already existing one.
     *
     * @param run
-    * @return
+    * @return true if the run exists
     */
   def exists(run: Run): Boolean
 

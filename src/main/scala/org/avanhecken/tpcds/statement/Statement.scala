@@ -25,7 +25,7 @@ case class Statement(text: String) extends SharedSparkSession {
       result.foreach(println)
       println(s"DEBUG Result count is '${result.size}'")
       println(s"DEBUG Statement '$index' finished.")
-      listener.getStatementResult()
+      listener.getStatementResult
     } catch {
       case e: Exception =>
         println(s"DEBUG Statement '$index' failed!")

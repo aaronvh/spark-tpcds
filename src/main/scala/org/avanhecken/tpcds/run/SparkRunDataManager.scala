@@ -28,22 +28,33 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
   val dfTableName: String = s"$database.$dfName"
   val dfSchema: StructType =
     StructType {
-      List(
+      Array(
         StructField("run", StringType, false),
         StructField("total", LongType, true)
-      ) ++ QueryFactory.queries.keySet.map(id => StructField(s"query$id", LongType, true)).toList
+      ) ++ QueryFactory.ids.map(id => StructField(s"query$id", LongType, true))
     }
 
   //lazy val runDs: Dataset[RunResult] = spark.table(dsTableName).as[RunResult]
   lazy val runDf: DataFrame = spark.table(dfTableName)
 
-  private def initializeDb(): SparkRunDataManager = {
+  /**
+    * Check if the run table exist and if the schema is correct.
+    *
+    * @return the initialized Run DataManager
+    */
+  override def initialize(): SparkRunDataManager = {
     /** DS */
     //spark.emptyDataset[RunResult].write.mode(SaveMode.Ignore).saveAsTable(dsTableName)
 
     /** DF */
-    // @TODO -> Check if table already exists.
-    // If yes but with different schema then rename the table and create a new one with the new schema.
+//    val currentDfSchema: StructType = spark.table(dfTableName).schema
+//    println(s"TRACE The existing schema:\n$currentDfSchema")
+//    if (currentDfSchema != dfSchema) {
+//      println("ERROR The existing schema does not match the new run schema.")
+//      println(s"TRACE The new run schema:\n$dfSchema")
+//      System.exit(1)
+//    }
+
     spark.createDataFrame(sc.emptyRDD[Row], dfSchema).write.mode(SaveMode.Ignore).saveAsTable(dfTableName)
 
     this
@@ -72,11 +83,10 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
       //val ds: Dataset[RunResult] = List(runResult).toDS
       //ds.write.insertInto(dsTableName)
 
-      val allIds: Set[Short] = QueryFactory.queries.keySet
       val runElapsedTimes: Map[Short, Long] = runResult.queryResults.map { case (id, res) => (id, res.elapsedTime) }
 
-      val elapsedTimes: Array[Long] = if (runResult.queryResults.size != allIds.size) {
-        allIds.map(id => runElapsedTimes.getOrElse(id, -2L)).toArray
+      val elapsedTimes: Array[Long] = if (runResult.queryResults.size != QueryFactory.ids.size) {
+        QueryFactory.ids.map(id => runElapsedTimes.getOrElse(id, -2L))
       } else {
         runElapsedTimes.values.toArray
       }
@@ -89,8 +99,6 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
 }
 
 object SparkRunDataManager {
-  def apply(args: Args): SparkRunDataManager = {
-    new SparkRunDataManager(args).initializeDb()
-  }
+  def apply(args: Args): SparkRunDataManager = new SparkRunDataManager(args).initialize()
 }
 

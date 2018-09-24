@@ -18,10 +18,7 @@ case class Run(_name: String, description: String, executionDateTime: DateTime, 
     spark.sql(s"use $database")
 
     println(s"INFO Start run '$name' ...")
-    val result = RunResult(
-      this,
-      queries.map(query => (query.id, query.execute())).toMap
-    )
+    val result = RunResult(this, queries.map(query => (query.id, query.execute())).toMap)
     println(s"INFO Finished run '$name'.")
 
     /** Store the run results using a DataManager. */
@@ -35,18 +32,20 @@ case object Run {
     val description = args("description")
     val executionDateTime = DateTime.now(DateTimeZone.forID("Europe/Brussels"))
 
-    val runDataManager: RunDataManager = SparkRunDataManager(args)
-
     /** For now the Spark run data manager is used. */
-    val run = Run(argsName, description, executionDateTime, runDataManager, args)
+    val run = Run(argsName, description, executionDateTime, SparkRunDataManager(args), args)
 
+    prepareRun(run)
+  }
+
+  def prepareRun(run: Run): Run = {
     /** If run exists then rename with the execution date expressed in milliseconds attached as suffix. */
-    if (runDataManager.exists(run)) {
-      val newName = s"${argsName}_${executionDateTime.getMillis}"
-      println(s"WARN The run already exists, renaming it from '$argsName' to '$newName'.")
+    if (run.runDataManager.exists(run)) {
+      val newName = s"${run.name}_${run.executionDateTime.getMillis}"
+      println(s"WARN The run already exists, renaming it from '${run.name}' to '$newName'.")
       run.copy(newName)
     } else {
-      println(s"TRACE The run '$argsName' does not exist.")
+      println(s"TRACE The run '${run.name}' does not exist.")
       run
     }
   }
