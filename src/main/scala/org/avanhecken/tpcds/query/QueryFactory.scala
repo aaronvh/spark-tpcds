@@ -5,7 +5,7 @@ import java.io.File
 import query._
 
 import scala.collection.immutable.SortedMap
-import scala.org.avanhecken.tpcds.ArgumentParser.Args
+import org.avanhecken.tpcds.ArgumentParser.Args
 
 /**
   * Factory to create the 99 queries of the TPC-DS benchmark.
