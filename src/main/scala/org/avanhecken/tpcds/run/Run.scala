@@ -1,10 +1,9 @@
 package org.avanhecken.tpcds.run
 
+import org.joda.time.{DateTime, DateTimeZone}
 import org.avanhecken.tpcds.SharedSparkSession
 import org.avanhecken.tpcds.query._
-import org.joda.time.{DateTime, DateTimeZone}
-
-import scala.org.avanhecken.tpcds.ArgumentParser.Args
+import org.avanhecken.tpcds.ArgumentParser.Args
 
 case class Run(_name: String, description: String, executionDateTime: DateTime, runDataManager: RunDataManager, args: Args) extends SharedSparkSession {
   val queries: Array[Query] = QueryFactory.generateQueries(args)

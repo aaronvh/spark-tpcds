@@ -1,9 +1,6 @@
 package org.avanhecken.tpcds.query
 
 import java.io.File
-
-import query._
-
 import scala.collection.immutable.SortedMap
 import org.avanhecken.tpcds.ArgumentParser.Args
 

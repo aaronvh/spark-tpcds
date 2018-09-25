@@ -4,7 +4,7 @@ import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SaveMode}
 import org.avanhecken.tpcds.SharedSparkSession
 import org.avanhecken.tpcds.query.QueryFactory
-import scala.org.avanhecken.tpcds.ArgumentParser.Args
+import org.avanhecken.tpcds.ArgumentParser.Args
 
 /**
   * Runtable schema:

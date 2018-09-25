@@ -1,12 +1,8 @@
 package org.avanhecken.tpcds.query
 
 import java.io.File
-
-import org.avanhecken.tpcds.SharedSparkSession
-import org.avanhecken.tpcds.statement.Statement
-import query.QueryClass
-
 import scala.io.{Codec, Source}
+import org.avanhecken.tpcds.statement.Statement
 
 /**
   * Corresponds to each of the 99 queries in the TPC-DS benchmark.

@@ -1,6 +1,6 @@
 package org.avanhecken.tpcds.run
 
-import scala.org.avanhecken.tpcds.ArgumentParser.Args
+import org.avanhecken.tpcds.ArgumentParser.Args
 
 trait RunDataManager {
   val args: Args

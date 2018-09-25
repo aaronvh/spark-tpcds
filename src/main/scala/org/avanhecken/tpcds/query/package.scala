@@ -1,4 +1,4 @@
-package org.avanhecken.tpcds.query
+package org.avanhecken.tpcds
 
 package object query {
   type QueryClass = Int

@@ -1,4 +1,4 @@
-package scala.org.avanhecken.tpcds
+package org.avanhecken.tpcds
 
 object ArgumentParser {
   type Args = Map[String, String]
