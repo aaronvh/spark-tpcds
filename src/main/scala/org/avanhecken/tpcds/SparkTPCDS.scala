@@ -5,7 +5,7 @@ import org.avanhecken.tpcds.run.Run
 object SparkTPCDS {
   def main(args: Array[String]): Unit = {
     try {
-      Run(ArgumentParser.parse(args)).execute()
+      Run.execute(ArgumentParser.parse(args))
     } catch {
       case e: Exception =>
         println(s"ERROR ${e.getMessage}\n${e.printStackTrace()}")

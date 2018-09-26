@@ -147,11 +147,6 @@ Iteration 2: Find items that had a coefficient of variation in the first months 
     (id, Query(
       id,
       businessQuestion,
-      new File(getClass.getResource(s"/queries/query$id.sql").getPath),
-      new File(getClass.getResource(s"/answer_sets").getPath)
-        .listFiles
-        .filter(f => f.getName == s"$id.ans" || f.getName == s"${id}_NULLS_FIRST.ans")
-        .head,
       queryClass
     ))
   }

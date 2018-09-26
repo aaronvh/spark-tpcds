@@ -30,7 +30,7 @@ case class Statement(text: String) extends SharedSparkSession {
       case e: Exception =>
         println(s"DEBUG Statement '$index' failed!")
         println(s"ERROR ${e.getMessage}\n${e.printStackTrace()}") // Same at main method!
-        StatementResult(this, None, None)
+        StatementResult(this)
     } finally {
       println("TRACE Remove listener.")
       sc.removeSparkListener(listener)

@@ -1,7 +1,7 @@
 package org.avanhecken.tpcds.run
 
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Row, SaveMode}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode}
 import org.avanhecken.tpcds.SharedSparkSession
 import org.avanhecken.tpcds.query.QueryFactory
 import org.avanhecken.tpcds.ArgumentParser.Args
@@ -20,8 +20,8 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
   val database: String = args("db")
 
   // @TODO -> Can be set by an option.
-  //val dsName: String = "spark_tpcds_runs"
-  //val dsTableName: String = s"$database.$dsName"
+  val dsName: String = "spark_tpcds_runs"
+  val dsTableName: String = s"$database.$dsName"
 
   // @TODO -> Can be set by an option.
   val dfName: String = "spark_tpcds_runs_summary"
@@ -34,7 +34,7 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
       ) ++ QueryFactory.ids.map(id => StructField(s"query$id", LongType, true))
     }
 
-  //lazy val runDs: Dataset[RunResult] = spark.table(dsTableName).as[RunResult]
+  lazy val runDs: Dataset[RunResult] = spark.table(dsTableName).as[RunResult]
   lazy val runDf: DataFrame = spark.table(dfTableName)
 
   /**
@@ -44,17 +44,10 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
     */
   override def initialize(): SparkRunDataManager = {
     /** DS */
-    //spark.emptyDataset[RunResult].write.mode(SaveMode.Ignore).saveAsTable(dsTableName)
+    import spark.implicits._
+    spark.emptyDataset[RunResult].write.mode(SaveMode.Ignore).saveAsTable(dsTableName)
 
     /** DF */
-//    val currentDfSchema: StructType = spark.table(dfTableName).schema
-//    println(s"TRACE The existing schema:\n$currentDfSchema")
-//    if (currentDfSchema != dfSchema) {
-//      println("ERROR The existing schema does not match the new run schema.")
-//      println(s"TRACE The new run schema:\n$dfSchema")
-//      System.exit(1)
-//    }
-
     spark.createDataFrame(sc.emptyRDD[Row], dfSchema).write.mode(SaveMode.Ignore).saveAsTable(dfTableName)
 
     this
@@ -67,8 +60,10 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
     * @return true if run exists else false
     */
   override def exists(run: Run): Boolean = {
-    //!(runDs.filter(_.run.name == run.name).count() == 0)
-    !(runDf.where('run.eqNullSafe(run.name)).count() == 0)
+    val name: String = run.name
+
+    !(runDs.filter(_.run.name == name).count() == 0) ||
+    !(runDf.where('run.eqNullSafe(name)).count() == 0)
   }
 
   /**
@@ -80,8 +75,8 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
     if (exists(runResult.run)) {
       throw new RuntimeException(s"Run '${runResult.run.name}' already exists!")
     } else {
-      //val ds: Dataset[RunResult] = List(runResult).toDS
-      //ds.write.insertInto(dsTableName)
+      val ds: Dataset[RunResult] = List(runResult).toDS
+      ds.write.insertInto(dsTableName)
 
       val runElapsedTimes: Map[Short, Long] = runResult.queryResults.map { case (id, res) => (id, res.elapsedTime) }
 

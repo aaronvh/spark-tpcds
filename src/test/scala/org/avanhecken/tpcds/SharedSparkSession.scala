@@ -10,4 +10,5 @@ trait SharedSparkSession {
     .getOrCreate()
 
   val sc = spark.sparkContext
+  sc.setLogLevel("ERROR")
 }
