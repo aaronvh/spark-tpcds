@@ -11,6 +11,7 @@ class StatementListener(statement: Statement) extends SparkListener {
     event match {
       case e: SparkListenerSQLExecutionStart => startEvent = Some(e)
       case e: SparkListenerSQLExecutionEnd => endEvent= Some(e)
+      case _ =>
     }
   }
 

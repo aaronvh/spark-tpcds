@@ -17,7 +17,7 @@ import org.avanhecken.tpcds.ArgumentParser.Args
 class SparkRunDataManager(override val args: Args) extends RunDataManager with SharedSparkSession {
   import spark.implicits._
 
-  val database: String = args("db")
+  val database: String = args("database")
 
   // @TODO -> Can be set by an option.
   val dsName: String = "spark_tpcds_runs"
@@ -80,7 +80,7 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
 
       val runElapsedTimes: Map[Short, Long] = runResult.queryResults.map { case (id, res) => (id, res.elapsedTime) }
 
-      val elapsedTimes: Array[Long] = if (runResult.queryResults.size != QueryFactory.ids.size) {
+      val elapsedTimes: Array[Long] = if (runResult.queryResults.size != QueryFactory.ids.length) {
         QueryFactory.ids.map(id => runElapsedTimes.getOrElse(id, -2L))
       } else {
         runElapsedTimes.values.toArray
