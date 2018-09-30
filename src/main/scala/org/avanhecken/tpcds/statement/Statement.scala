@@ -8,9 +8,9 @@ case class Statement(text: String) extends SharedSparkSession {
     println(s"TRACE Create listener for statement '$index'.")
     val listener = new StatementListener(this)
 
-    println("TRACE Add listener.")
-    sc.addSparkListener(listener)
     try {
+      println("TRACE Add listener.")
+      sc.addSparkListener(listener)
       println(s"DEBUG Execute statement '$index' ...")
       /** Collect the result, it can be used to compare with the expected answer test and determine if the count is correct.
         * Downside, possible OoM issues!

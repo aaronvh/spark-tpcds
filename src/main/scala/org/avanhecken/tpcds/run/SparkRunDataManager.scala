@@ -54,14 +54,12 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
   }
 
   /**
-    * Check if the run corresponds to an already existing one.
+    * Check if the name of the run corresponds to an already existing one.
     *
-    * @param run
-    * @return true if run exists else false
+    * @param name
+    * @return true if run name exists else false
     */
-  override def exists(run: Run): Boolean = {
-    val name: String = run.name
-
+  override def exists(name: String): Boolean = {
     !(runDs.filter(_.run.name == name).count() == 0) ||
     !(runDf.where('run.eqNullSafe(name)).count() == 0)
   }
@@ -72,7 +70,7 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
     * @param run
     */
   override def save(runResult: RunResult): Unit = {
-    if (exists(runResult.run)) {
+    if (exists(runResult.run.name)) {
       throw new RuntimeException(s"Run '${runResult.run.name}' already exists!")
     } else {
       val ds: Dataset[RunResult] = List(runResult).toDS
@@ -90,6 +88,25 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
       val df = spark.createDataFrame(row, dfSchema)
       df.write.insertInto(dfTableName)
     }
+  }
+
+  /**
+    * Retrieve the results of the run with this name.
+    *
+    * @param name
+    * @return the result of the run corresponding to this name
+    */
+  override def get(name: String): RunResult = {
+    runDs.filter(_.run.name == name).head()
+  }
+
+  /**
+    * Collect the names of all the runs.
+    *
+    * @return the names of all the runs
+    */
+  override def getNames(): Array[String] = {
+    runDs.map(_.run.name).collect
   }
 }
 
