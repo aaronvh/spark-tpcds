@@ -1,8 +1,11 @@
 package org.avanhecken.tpcds
 
+
 import org.avanhecken.tpcds.ArgumentParser.Args
 import org.avanhecken.tpcds.query.QueryResult
 import org.avanhecken.tpcds.run.{Run, RunDataManager, RunResult, SparkRunDataManager}
+import org.joda.time.DateTime
+import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 
 object SparkTPCDS {
   def main(args: Array[String]): Unit = {
@@ -25,17 +28,19 @@ object SparkTPCDS {
   }
 
   def list(runDataManager: RunDataManager): Unit = {
-    runDataManager.getNames().foreach(println)
+    runDataManager.getNames().foreach{
+      name =>
+        val executionDateTime: DateTime = new DateTime(runDataManager.get(name).run.executionDateTime)
+        val dateTimeFormatter: DateTimeFormatter =  DateTimeFormat.forPattern("dd/MM/yyyy hh:mm:ss")
+        printf("%-25s %25s\n", name, dateTimeFormatter.print(executionDateTime))
+    }
   }
 
   def execute(runDataManager: RunDataManager, args: Args): Unit = {
-    val result: RunResult = Run(args).execute(runDataManager, args)
-
-    /** Store the run results using a DataManager. */
-    runDataManager.save(result)
+    Run(args).execute(runDataManager, args)
   }
 
-  def compare(runDataManager: RunDataManager, args: Args) = {
+  def compare(runDataManager: RunDataManager, args: Args): Unit = {
     val name1: String = args("name1")
     val name2: String = args("name2")
 

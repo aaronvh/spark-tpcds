@@ -3,7 +3,7 @@ package org.avanhecken.tpcds.query
 import java.io.File
 
 import org.avanhecken.tpcds.ArgumentParser.Args
-import org.avanhecken.tpcds.query.QueryFactory.getClass
+import org.avanhecken.tpcds.run.RunDataManager
 
 import scala.io.{Codec, Source}
 import org.avanhecken.tpcds.statement.Statement
@@ -17,23 +17,10 @@ import org.avanhecken.tpcds.statement.Statement
   * @param answerFileLocation
   * @param queryClass
   */
-case class Query(id: Short, businessQuestion: String, queryClass: QueryClass) {
-  def statements(args: Args): Array[Statement] = {
-    val resourceLocation: String = args("resource_location")
-    val sqlFileLocation: File = new File(s"$resourceLocation/queries/query$id.sql")
-
-    implicit val codec = Codec("UTF-8")
-    Source.fromFile(sqlFileLocation.getPath).mkString.trim.split(";").map(Statement)
-  }
-
-  def execute(args: Args): QueryResult = {
+case class Query(id: Short, businessQuestion: String, queryClass: QueryClass, statements: Array[Statement]) {
+  def execute(runDataManager: RunDataManager, args: Args): Unit = {
     print(s"INFO Run query '$id' ... ")
-    val result = QueryResult(
-      this,
-      statements(args).zipWithIndex.map { case (statement, index) => statement.execute(index) }
-    )
+    statements.foreach(_.execute(runDataManager))
     println(s"INFO Finished query '$id'.")
-
-    result
   }
 }

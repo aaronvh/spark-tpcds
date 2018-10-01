@@ -5,8 +5,8 @@ import org.avanhecken.tpcds.SharedSparkSession
 import org.avanhecken.tpcds.query._
 import org.avanhecken.tpcds.ArgumentParser.Args
 
-case class Run(name: String, description: String, executionDateTime: Long, sparkConfig: Map[String, String]) extends SharedSparkSession {
-  def execute(runDataManager: RunDataManager, args: Args): RunResult = {
+case class Run(name: String, description: String, executionDateTime: Long, sparkConfig: Map[String, String], queries: Array[Query]) {
+  def execute(runDataManager: RunDataManager, args: Args): Unit = {
     def prepareRun(run: Run, runDataManager: RunDataManager): Run = {
       /** If run exists then rename with the execution date expressed in milliseconds attached as suffix. */
       if (runDataManager.exists(run.name)) {
@@ -21,17 +21,13 @@ case class Run(name: String, description: String, executionDateTime: Long, spark
 
     val preparedRun: Run = prepareRun(this, runDataManager)
 
-    val queries: Array[Query] = QueryFactory.generateQueries(args)
-    val database: String = args("database")
-
-    println(s"TRACE Use '$database'.")
-    spark.sql(s"use $database")
+    println(s"DEBUG Saving run '$name' ...")
+    runDataManager.save(this)
+    println(s"DEBUG Saved run '$name'.")
 
     println(s"INFO Start run '$name' ...")
-    val result = RunResult(preparedRun, queries.map(query => (query.id, query.execute(args))).toMap)
+    queries.foreach(_.execute(runDataManager, args))
     println(s"INFO Finished run '$name'.")
-
-    result
   }
 }
 
@@ -40,7 +36,8 @@ case object Run extends SharedSparkSession {
     val argsName: String = args("name")
     val description: String = args("description")
     val executionDateTime: Long = DateTime.now(DateTimeZone.forID("Europe/Brussels")).getMillis
+    val queries: Array[Query] = QueryFactory.generateQueries(args)
 
-    Run(argsName, description, executionDateTime, spark.conf.getAll)
+    Run(argsName, description, executionDateTime, spark.conf.getAll, queries)
   }
 }

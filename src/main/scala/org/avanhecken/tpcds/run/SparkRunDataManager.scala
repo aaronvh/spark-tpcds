@@ -3,30 +3,25 @@ package org.avanhecken.tpcds.run
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode}
 import org.avanhecken.tpcds.SharedSparkSession
-import org.avanhecken.tpcds.query.QueryFactory
+import org.avanhecken.tpcds.query.{QueryFactory, QueryResult}
 import org.avanhecken.tpcds.ArgumentParser.Args
+import org.avanhecken.tpcds.statement.StatementResult
 
-/**
-  * Runtable schema:
-  *   StructType(Array(
-  *     StructField("run",
-  *   ))
-  *
-  * @param args
-  */
 class SparkRunDataManager(override val args: Args) extends RunDataManager with SharedSparkSession {
   import spark.implicits._
 
   val database: String = args("database")
 
   // @TODO -> Can be set by an option.
-  val dsName: String = "spark_tpcds_runs"
-  val dsTableName: String = s"$database.$dsName"
+  val runsName: String = "spark_tpcds_runs"
+  val runsTable: String = s"$database.$runsName"
+  val statementsName: String = "spark_tpcds_statements"
+  val statementsTable: String = s"$database.$statementsName"
 
   // @TODO -> Can be set by an option.
-  val dfName: String = "spark_tpcds_runs_summary"
-  val dfTableName: String = s"$database.$dfName"
-  val dfSchema: StructType =
+  val runsSummaryName: String = "spark_tpcds_runs_summary"
+  val runsSummaryTable: String = s"$database.$runsSummaryName"
+  val runsSummarySchema: StructType =
     StructType {
       Array(
         StructField("run", StringType, false),
@@ -34,79 +29,62 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
       ) ++ QueryFactory.ids.map(id => StructField(s"query$id", LongType, true))
     }
 
-  lazy val runDs: Dataset[RunResult] = spark.table(dsTableName).as[RunResult]
-  lazy val runDf: DataFrame = spark.table(dfTableName)
+  lazy val runs: Dataset[Run] = spark.table(runsTable).as[Run]
+  lazy val statements: Dataset[StatementResult] = spark.table(statementsTable).as[StatementResult]
+  lazy val runsSummary: DataFrame = spark.table(runsSummaryTable)
 
-  /**
-    * Check if the run table exist and if the schema is correct.
-    *
-    * @return the initialized Run DataManager
-    */
   override def initialize(): SparkRunDataManager = {
     /** DS */
     import spark.implicits._
-    spark.emptyDataset[RunResult].write.mode(SaveMode.Ignore).saveAsTable(dsTableName)
+    spark.emptyDataset[Run].write.mode(SaveMode.Ignore).saveAsTable(runsTable)
+    spark.emptyDataset[StatementResult].write.mode(SaveMode.Ignore).saveAsTable(statementsTable)
 
     /** DF */
-    spark.createDataFrame(sc.emptyRDD[Row], dfSchema).write.mode(SaveMode.Ignore).saveAsTable(dfTableName)
+    spark.createDataFrame(sc.emptyRDD[Row], runsSummarySchema).write.mode(SaveMode.Ignore).saveAsTable(runsSummaryTable)
 
     this
   }
 
-  /**
-    * Check if the name of the run corresponds to an already existing one.
-    *
-    * @param name
-    * @return true if run name exists else false
-    */
   override def exists(name: String): Boolean = {
-    !(runDs.filter(_.run.name == name).count() == 0) ||
-    !(runDf.where('run.eqNullSafe(name)).count() == 0)
+    !(runs.filter(_.name == name).count() == 0)
   }
 
-  /**
-    * Save the run if it does not exists.
-    *
-    * @param run
-    */
-  override def save(runResult: RunResult): Unit = {
-    if (exists(runResult.run.name)) {
-      throw new RuntimeException(s"Run '${runResult.run.name}' already exists!")
+  override def save(run: Run): Unit = {
+    if (exists(run.name)) {
+      throw new RuntimeException(s"Run '${run.name}' already exists!")
     } else {
-      val ds: Dataset[RunResult] = List(runResult).toDS
-      ds.write.insertInto(dsTableName)
+      val ds: Dataset[Run] = List(run).toDS
+      ds.write.insertInto(runsTable)
 
-      val runElapsedTimes: Map[Short, Long] = runResult.queryResults.map { case (id, res) => (id, res.elapsedTime) }
+      //val runElapsedTimes: Map[Short, Long] = runResult.queryResults.map { case (id, res) => (id, res.elapsedTime) }
 
-      val elapsedTimes: Array[Long] = if (runResult.queryResults.size != QueryFactory.ids.length) {
-        QueryFactory.ids.map(id => runElapsedTimes.getOrElse(id, -2L))
-      } else {
-        runElapsedTimes.values.toArray
-      }
+      //val elapsedTimes: Array[Long] = if (runResult.queryResults.size != QueryFactory.ids.length) {
+      //  QueryFactory.ids.map(id => runElapsedTimes.getOrElse(id, -2L))
+      //} else {
+      //  runElapsedTimes.values.toArray
+      //}
 
-      val row = sc.parallelize(Seq(Row.fromSeq(Array(runResult.run.name, runResult.elapsedTime) ++ elapsedTimes)))
-      val df = spark.createDataFrame(row, dfSchema)
-      df.write.insertInto(dfTableName)
+      //val row = sc.parallelize(Seq(Row.fromSeq(Array(runResult.run.name, runResult.elapsedTime) ++ elapsedTimes)))
+      //val df = spark.createDataFrame(row, dfSchema)
+      //df.write.insertInto(dfTableName)
     }
   }
 
-  /**
-    * Retrieve the results of the run with this name.
-    *
-    * @param name
-    * @return the result of the run corresponding to this name
-    */
-  override def get(name: String): RunResult = {
-    runDs.filter(_.run.name == name).head()
+  override def save(statementResult: StatementResult): Unit = {
+    val ds: Dataset[StatementResult] = List(statementResult).toDS
+    ds.write.insertInto(statementsTable)
   }
 
-  /**
-    * Collect the names of all the runs.
-    *
-    * @return the names of all the runs
-    */
+  override def get(name: String): RunResult = {
+    val run: Run = runs.filter(_.name == name).head()
+    val statementResults: Array[StatementResult] = ???
+    val queryResults: Array[QueryResult] = run.queries.map(QueryResult(query, ))
+
+    RunResult(run, )
+  }
+
   override def getNames(): Array[String] = {
-    runDs.map(_.run.name).collect
+    runs.map(_.name).collect
   }
 }
 

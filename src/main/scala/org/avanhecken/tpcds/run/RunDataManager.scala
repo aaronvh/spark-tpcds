@@ -1,6 +1,7 @@
 package org.avanhecken.tpcds.run
 
 import org.avanhecken.tpcds.ArgumentParser.Args
+import org.avanhecken.tpcds.statement.StatementResult
 
 trait RunDataManager {
   val args: Args
@@ -23,9 +24,16 @@ trait RunDataManager {
   /**
     * Save the run if it does not exists.
     *
-    * @param run
+    * @param statementResult
     */
-  def save(runResult: RunResult): Unit
+  def save(run: Run): Unit
+
+  /**
+    * Save the statement result.
+    *
+    * @param statementResult
+    */
+  def save(statementResult: StatementResult): Unit
 
   /**
     * Retrieve the results of the run with this name.
