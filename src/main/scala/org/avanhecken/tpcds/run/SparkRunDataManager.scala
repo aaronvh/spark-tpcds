@@ -60,15 +60,20 @@ class SparkRunDataManager(args: Args) extends RunDataManager with SharedSparkSes
   }
 
   override def get(name: String): RunResult = {
+    println(s"TRACE Filter run '$name'")
     val run: Option[Run] = runs.filter(_.name == name).collect.headOption
 
     run match {
       case Some(run) =>
+        println(s"TRACE Get query results")
         val queryResults: Map[Short, QueryResult] = run.queries.map {
           query =>
             val statementResults: Array[StatementResult] = query
               .statements
-              .flatMap(statement => statements.filter(statementResult => statementResult.statement.id == statement.id).collect)
+              .flatMap{
+                statement =>
+                  statements.filter(statementResult => statementResult.statement.id == statement.id).collect
+              }
             (query.id, QueryResult(query, statementResults))
         }.toMap
 

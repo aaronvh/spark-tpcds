@@ -29,10 +29,11 @@ object SparkTPCDS {
   }
 
   def list(runDataManager: RunDataManager): Unit = {
+    val dateTimeFormatter: DateTimeFormatter =  DateTimeFormat.forPattern("dd/MM/yyyy hh:mm:ss")
+
     runDataManager.getNames().foreach{
       name =>
         val executionDateTime: DateTime = new DateTime(runDataManager.get(name).run.executionDateTime)
-        val dateTimeFormatter: DateTimeFormatter =  DateTimeFormat.forPattern("dd/MM/yyyy hh:mm:ss")
         printf("%-25s %25s\n", name, dateTimeFormatter.print(executionDateTime))
     }
   }
@@ -47,7 +48,6 @@ object SparkTPCDS {
 
     val queryResults1: Map[Short, QueryResult] = runDataManager.get(name1).queryResults
     val queryResults2: Map[Short, QueryResult] = runDataManager.get(name2).queryResults
-
     val allKeys = (queryResults1.keySet ++ queryResults2.keySet).toArray.sorted
 
     allKeys.foreach {
@@ -58,12 +58,13 @@ object SparkTPCDS {
           case (None, Some(_)) => println("  No result found in run 1.")
           case (Some(_), None) => println("  No result found in run 2.")
           case (Some(queryResult1), Some(queryResult2)) =>
-            println(s"Elapsed time matches               : ${queryResult1.elapsedTime == queryResult2.elapsedTime}")
+            println(s"  Elapsed time matches               : ${queryResult1.elapsedTime == queryResult2.elapsedTime}")
             queryResult1.statementResults.zip(queryResult2.statementResults).foreach {
               case (sr1, sr2) =>
-                println(s"Description matches              : ${sr1.description == sr2.description}")
-                println(s"Details matches                  : ${sr1.details == sr2.details}")
-                println(s"Physical plan description matches: ${sr1.physicalPlanDescription == sr2.physicalPlanDescription}")
+                println(s"  Statement '${sr1.statement.id}' and '${sr2.statement.id}'")
+                println(s"    Description matches              : ${sr1.description == sr2.description}")
+                println(s"    Details matches                  : ${sr1.details == sr2.details}")
+                println(s"    Physical plan description matches: ${sr1.physicalPlanDescription == sr2.physicalPlanDescription}")
             }
         }
     }

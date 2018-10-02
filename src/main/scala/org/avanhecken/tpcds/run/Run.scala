@@ -7,22 +7,19 @@ import org.avanhecken.tpcds.ArgumentParser.Args
 
 case class Run(name: String, description: String, database: String, executionDateTime: Long, sparkConfig: Map[String, String], queries: Array[Query]) extends SharedSparkSession {
   def execute(runDataManager: RunDataManager): Unit = {
-    def prepareRun(run: Run, runDataManager: RunDataManager): Run = {
-      /** If run exists then rename with the execution date expressed in milliseconds attached as suffix. */
+    def validateRun(run: Run, runDataManager: RunDataManager): Run = {
       if (runDataManager.exists(run.name)) {
-        val newName = s"${run.name}_${run.executionDateTime}"
-        println(s"WARN The run already exists, renaming it from '${run.name}' to '$newName'.")
-        run.copy(newName)
+        throw new RuntimeException("Run already exists!")
       } else {
         println(s"TRACE The run '${run.name}' does not exist.")
         run
       }
     }
 
-    val preparedRun: Run = prepareRun(this, runDataManager)
+    val validRun: Run = validateRun(this, runDataManager)
 
     println(s"DEBUG Saving run '$name' ...")
-    runDataManager.save(preparedRun)
+    runDataManager.save(validRun)
     println(s"DEBUG Saved run '$name'.")
 
     println(s"INFO Start run '$name' ...")
