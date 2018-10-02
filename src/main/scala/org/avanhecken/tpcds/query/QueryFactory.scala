@@ -137,10 +137,10 @@ Iteration 2: Find items that had a coefficient of variation in the first months 
     * @param args
     * @return
     */
-  def generateQueries(args: Args): Array[Query] = {
-    def statements(id: Short, args: Args): Array[Statement] = {
+  def generateQueries(name: String, args: Args): Array[Query] = {
+    def statements(name: String, queryId: Short, args: Args): Array[Statement] = {
       val resourceLocation: String = args("resource_location")
-      val sqlFileLocation: File = new File(s"$resourceLocation/queries/query$id.sql")
+      val sqlFileLocation: File = new File(s"$resourceLocation/queries/query$queryId.sql")
 
       implicit val codec = Codec("UTF-8")
       Source.fromFile(sqlFileLocation.getPath)
@@ -148,7 +148,11 @@ Iteration 2: Find items that had a coefficient of variation in the first months 
         .trim
         .split(";")
         .zipWithIndex
-        .map { case (text, id) => Statement(id.toShort, text) }
+        .map {
+          case (text, statementId) =>
+            val id: String = s"$name.$queryId.$statementId"
+            Statement(id, text)
+        }
     }
 
     val queryIds: Option[Set[Short]] = args
@@ -159,7 +163,10 @@ Iteration 2: Find items that had a coefficient of variation in the first months 
     queryIds
       .map(ids => rawQueries.filter(rawQuery => ids.contains(rawQuery.id)))
       .getOrElse(rawQueries)
-      .map(rawQuery => Query(rawQuery.id, rawQuery.businessQuestion, UNKNOWN, statements(rawQuery.id, args)))
+      .map {
+        rawQuery =>
+          Query(rawQuery.id, rawQuery.businessQuestion, UNKNOWN, statements(name, rawQuery.id, args))
+      }
   }
 }
 

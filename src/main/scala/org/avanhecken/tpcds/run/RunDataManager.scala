@@ -1,18 +1,8 @@
 package org.avanhecken.tpcds.run
 
-import org.avanhecken.tpcds.ArgumentParser.Args
 import org.avanhecken.tpcds.statement.StatementResult
 
 trait RunDataManager {
-  val args: Args
-
-  /**
-    * Check if the run table exist and if the schema is correct.
-    *
-    * @return the initialized Run DataManager
-    */
-  def initialize(): RunDataManager
-
   /**
     *  Check if the name of the run does not correspond to an already existing one.
     *

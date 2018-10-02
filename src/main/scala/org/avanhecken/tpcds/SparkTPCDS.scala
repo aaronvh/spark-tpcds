@@ -22,7 +22,8 @@ object SparkTPCDS {
       }
     } catch {
       case e: Exception =>
-        println(s"ERROR ${e.getMessage}\n${e.printStackTrace()}")
+        println(s"ERROR ${e.getMessage}")
+        e.printStackTrace()
         System.exit(1)
     }
   }
@@ -37,7 +38,7 @@ object SparkTPCDS {
   }
 
   def execute(runDataManager: RunDataManager, args: Args): Unit = {
-    Run(args).execute(runDataManager, args)
+    Run(args).execute(runDataManager)
   }
 
   def compare(runDataManager: RunDataManager, args: Args): Unit = {
@@ -53,6 +54,7 @@ object SparkTPCDS {
       key =>
         println(s"Query $key")
         (queryResults1.get(key), queryResults2.get(key)) match {
+          case (None, None) => println("  No result found in run 1 and 2.")
           case (None, Some(_)) => println("  No result found in run 1.")
           case (Some(_), None) => println("  No result found in run 2.")
           case (Some(queryResult1), Some(queryResult2)) =>

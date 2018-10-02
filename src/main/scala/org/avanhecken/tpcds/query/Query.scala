@@ -1,11 +1,6 @@
 package org.avanhecken.tpcds.query
 
-import java.io.File
-
-import org.avanhecken.tpcds.ArgumentParser.Args
 import org.avanhecken.tpcds.run.RunDataManager
-
-import scala.io.{Codec, Source}
 import org.avanhecken.tpcds.statement.Statement
 
 /**
@@ -18,7 +13,7 @@ import org.avanhecken.tpcds.statement.Statement
   * @param queryClass
   */
 case class Query(id: Short, businessQuestion: String, queryClass: QueryClass, statements: Array[Statement]) {
-  def execute(runDataManager: RunDataManager, args: Args): Unit = {
+  def execute(runDataManager: RunDataManager): Unit = {
     print(s"INFO Run query '$id' ... ")
     statements.foreach(_.execute(runDataManager))
     println(s"INFO Finished query '$id'.")

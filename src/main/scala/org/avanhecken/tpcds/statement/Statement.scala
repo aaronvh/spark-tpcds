@@ -4,7 +4,7 @@ import org.apache.spark.sql.Row
 import org.avanhecken.tpcds.SharedSparkSession
 import org.avanhecken.tpcds.run.RunDataManager
 
-case class Statement(id: Short, text: String) extends SharedSparkSession {
+case class Statement(id: String, text: String) extends SharedSparkSession {
   def execute(runDataManager: RunDataManager): Unit = {
     println(s"TRACE Create listener for statement '$id'.")
     val listener = new StatementListener(this)

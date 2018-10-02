@@ -1,13 +1,13 @@
 package org.avanhecken.tpcds.run
 
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode}
+import org.apache.spark.sql.{Dataset, SaveMode}
 import org.avanhecken.tpcds.SharedSparkSession
 import org.avanhecken.tpcds.query.{QueryFactory, QueryResult}
 import org.avanhecken.tpcds.ArgumentParser.Args
 import org.avanhecken.tpcds.statement.StatementResult
 
-class SparkRunDataManager(override val args: Args) extends RunDataManager with SharedSparkSession {
+class SparkRunDataManager(args: Args) extends RunDataManager with SharedSparkSession {
   import spark.implicits._
 
   val database: String = args("database")
@@ -29,18 +29,14 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
       ) ++ QueryFactory.ids.map(id => StructField(s"query$id", LongType, true))
     }
 
-  lazy val runs: Dataset[Run] = spark.table(runsTable).as[Run]
-  lazy val statements: Dataset[StatementResult] = spark.table(statementsTable).as[StatementResult]
-  lazy val runsSummary: DataFrame = spark.table(runsSummaryTable)
+  def runs: Dataset[Run] = spark.table(runsTable).as[Run]
+  def statements: Dataset[StatementResult] = spark.table(statementsTable).as[StatementResult]
 
-  override def initialize(): SparkRunDataManager = {
-    /** DS */
+  def initialize(): SparkRunDataManager = {
     import spark.implicits._
+
     spark.emptyDataset[Run].write.mode(SaveMode.Ignore).saveAsTable(runsTable)
     spark.emptyDataset[StatementResult].write.mode(SaveMode.Ignore).saveAsTable(statementsTable)
-
-    /** DF */
-    spark.createDataFrame(sc.emptyRDD[Row], runsSummarySchema).write.mode(SaveMode.Ignore).saveAsTable(runsSummaryTable)
 
     this
   }
@@ -55,18 +51,6 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
     } else {
       val ds: Dataset[Run] = List(run).toDS
       ds.write.insertInto(runsTable)
-
-      //val runElapsedTimes: Map[Short, Long] = runResult.queryResults.map { case (id, res) => (id, res.elapsedTime) }
-
-      //val elapsedTimes: Array[Long] = if (runResult.queryResults.size != QueryFactory.ids.length) {
-      //  QueryFactory.ids.map(id => runElapsedTimes.getOrElse(id, -2L))
-      //} else {
-      //  runElapsedTimes.values.toArray
-      //}
-
-      //val row = sc.parallelize(Seq(Row.fromSeq(Array(runResult.run.name, runResult.elapsedTime) ++ elapsedTimes)))
-      //val df = spark.createDataFrame(row, dfSchema)
-      //df.write.insertInto(dfTableName)
     }
   }
 
@@ -76,11 +60,21 @@ class SparkRunDataManager(override val args: Args) extends RunDataManager with S
   }
 
   override def get(name: String): RunResult = {
-    val run: Run = runs.filter(_.name == name).head()
-    val statementResults: Array[StatementResult] = ???
-    val queryResults: Array[QueryResult] = run.queries.map(QueryResult(query, ))
+    val run: Option[Run] = runs.filter(_.name == name).collect.headOption
 
-    RunResult(run, )
+    run match {
+      case Some(run) =>
+        val queryResults: Map[Short, QueryResult] = run.queries.map {
+          query =>
+            val statementResults: Array[StatementResult] = query
+              .statements
+              .flatMap(statement => statements.filter(statementResult => statementResult.statement.id == statement.id).collect)
+            (query.id, QueryResult(query, statementResults))
+        }.toMap
+
+        RunResult(run, queryResults)
+      case None => throw new RuntimeException("Run not found!")
+    }
   }
 
   override def getNames(): Array[String] = {
