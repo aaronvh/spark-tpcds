@@ -140,7 +140,7 @@ Iteration 2: Find items that had a coefficient of variation in the first months 
   def generateQueries(name: String, args: Args): Array[Query] = {
     def statements(name: String, queryId: Short, args: Args): Array[Statement] = {
       val resourceLocation: String = args("resource_location")
-      val sqlFileLocation: File = new File(s"$resourceLocation/queries/query$queryId.sql")
+      val sqlFileLocation: File = new File(s"$resourceLocation/queries.zip/query$queryId.sql")
 
       implicit val codec = Codec("UTF-8")
       Source.fromFile(sqlFileLocation.getPath)

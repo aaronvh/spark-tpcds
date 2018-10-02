@@ -1,7 +1,7 @@
 package org.avanhecken.tpcds.run
 
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{Dataset, SaveMode}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode}
 import org.avanhecken.tpcds.SharedSparkSession
 import org.avanhecken.tpcds.query.{QueryFactory, QueryResult}
 import org.avanhecken.tpcds.ArgumentParser.Args
@@ -84,6 +84,11 @@ class SparkRunDataManager(args: Args) extends RunDataManager with SharedSparkSes
 
   override def getNames(): Array[String] = {
     runs.map(_.name).collect
+  }
+
+  def getDF(): DataFrame = {
+    // @TODO -> schema: RunId, QueryId, StatementId, ElapsedTime
+    statements.map(s => (s.statement.id, s.elapsedTime)).toDF("statement_id", "elapsed_time")
   }
 }
 
