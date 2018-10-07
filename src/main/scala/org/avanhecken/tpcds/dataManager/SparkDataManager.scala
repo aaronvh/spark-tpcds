@@ -1,5 +1,6 @@
 package org.avanhecken.tpcds.dataManager
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Dataset, SaveMode}
 import org.avanhecken.tpcds.ArgumentParser.Args
@@ -8,10 +9,8 @@ import org.avanhecken.tpcds.query.{QueryFactory, QueryResult}
 import org.avanhecken.tpcds.run.{Run, RunResult}
 import org.avanhecken.tpcds.statement.StatementResult
 
-class SparkDataManager(args: Args) extends DataManager with SharedSparkSession {
+class SparkDataManager(args: Args) extends DataManager with SharedSparkSession with LazyLogging {
   import spark.implicits._
-
-  private val appLogger = SparkTPCDS.appLogger
 
   val database: String = args("database")
 
@@ -63,12 +62,12 @@ class SparkDataManager(args: Args) extends DataManager with SharedSparkSession {
   }
 
   override def get(name: String): RunResult = {
-    appLogger.trace(s"Filter run '$name'")
+    logger.trace(s"Filter run '$name'")
     val run: Option[Run] = runs.filter(_.name == name).collect.headOption
 
     run match {
       case Some(run) =>
-        appLogger.trace(s"Get query results")
+        logger.trace(s"Get query results")
         val queryResults: Map[Short, QueryResult] = run.queries.map {
           query =>
             val statementResults: Array[StatementResult] = query
@@ -109,5 +108,7 @@ class SparkDataManager(args: Args) extends DataManager with SharedSparkSession {
 
 object SparkDataManager {
   def apply(args: Args): SparkDataManager = new SparkDataManager(args).initialize()
+
+  def apply(database: String): SparkDataManager = new SparkDataManager(Map("database" -> database)).initialize()
 }
 
