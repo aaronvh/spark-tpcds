@@ -7,6 +7,7 @@ trait SharedSparkSession {
     .builder
     .appName("SparkPerformanceTester")
     .enableHiveSupport()
+    .config("spark.sql.crossJoin.enabled", "true")
     .getOrCreate()
 
   @transient lazy val sc = spark.sparkContext

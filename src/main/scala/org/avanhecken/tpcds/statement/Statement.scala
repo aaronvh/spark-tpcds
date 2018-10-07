@@ -1,18 +1,20 @@
 package org.avanhecken.tpcds.statement
 
 import org.apache.spark.sql.Row
-import org.avanhecken.tpcds.SharedSparkSession
-import org.avanhecken.tpcds.run.RunDataManager
+import org.avanhecken.tpcds.{SharedSparkSession, SparkTPCDS}
+import org.avanhecken.tpcds.dataManager.DataManager
 
 case class Statement(id: String, text: String) extends SharedSparkSession {
-  def execute(runDataManager: RunDataManager): Unit = {
-    println(s"TRACE Create listener for statement '$id'.")
+  private val appLogger = SparkTPCDS.appLogger
+
+  def execute(runDataManager: DataManager): Unit = {
+    appLogger.trace(s"Create listener for statement '$id'.")
     val listener = new StatementListener(this)
 
     val statementResult = try {
-      println("TRACE Add listener.")
+      appLogger.trace("Add listener.")
       sc.addSparkListener(listener)
-      println(s"DEBUG Execute statement '$id' ...")
+      appLogger.debug(s"Execute statement '$id' ...")
       /** Collect the result, it can be used to compare with the expected answer test and determine if the count is correct.
         * Downside, possible OoM issues!
         * Maybe another action will be preferred in the future.
@@ -21,24 +23,24 @@ case class Statement(id: String, text: String) extends SharedSparkSession {
         * - count -> Unable to compare with the answer tests.
         */
       val result: Array[Row] = spark.sql(text).collect
-      println(s"DEBUG Statement '$id' finished.")
-      println(s"DEBUG Print result:")
+      appLogger.debug(s"Statement '$id' finished.")
+      appLogger.debug(s"Print result:")
       result.foreach(println)
-      println(s"DEBUG Result count is '${result.size}'")
-      println(s"DEBUG Statement '$id' finished.")
+      appLogger.debug(s"Result count is '${result.size}'")
+      appLogger.debug(s"Statement '$id' finished.")
       listener.getStatementResult
     } catch {
       case e: Exception =>
-        println(s"DEBUG Statement '$id' failed!")
-        println(s"ERROR ${e.getMessage}\n${e.printStackTrace()}") // Same at main method!
+        appLogger.debug(s"Statement '$id' failed!")
+        appLogger.error(s"${e.getMessage}\n${e.printStackTrace()}") // Same at main method!
         StatementResult(this)
     } finally {
-      println("TRACE Remove listener.")
+      appLogger.trace("Remove listener.")
       sc.removeSparkListener(listener)
     }
 
-    println(s"DEBUG Saving statement '$id' result ...")
+    appLogger.debug(s"Saving statement '$id' result ...")
     runDataManager.save(statementResult)
-    println(s"DEBUG Saved statement '$id' result.")
+    appLogger.debug(s"Saved statement '$id' result.")
   }
 }

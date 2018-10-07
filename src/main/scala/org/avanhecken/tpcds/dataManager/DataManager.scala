@@ -1,8 +1,9 @@
-package org.avanhecken.tpcds.run
+package org.avanhecken.tpcds.dataManager
 
+import org.avanhecken.tpcds.run.{Run, RunResult}
 import org.avanhecken.tpcds.statement.StatementResult
 
-trait RunDataManager {
+trait DataManager {
   /**
     *  Check if the name of the run does not correspond to an already existing one.
     *

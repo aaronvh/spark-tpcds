@@ -1,14 +1,17 @@
-package org.avanhecken.tpcds.run
+package org.avanhecken.tpcds.dataManager
 
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode}
-import org.avanhecken.tpcds.SharedSparkSession
-import org.avanhecken.tpcds.query.{QueryFactory, QueryResult}
+import org.apache.spark.sql.{DataFrame, Dataset, SaveMode}
 import org.avanhecken.tpcds.ArgumentParser.Args
+import org.avanhecken.tpcds.{SharedSparkSession, SparkTPCDS}
+import org.avanhecken.tpcds.query.{QueryFactory, QueryResult}
+import org.avanhecken.tpcds.run.{Run, RunResult}
 import org.avanhecken.tpcds.statement.StatementResult
 
-class SparkRunDataManager(args: Args) extends RunDataManager with SharedSparkSession {
+class SparkDataManager(args: Args) extends DataManager with SharedSparkSession {
   import spark.implicits._
+
+  private val appLogger = SparkTPCDS.appLogger
 
   val database: String = args("database")
 
@@ -32,7 +35,7 @@ class SparkRunDataManager(args: Args) extends RunDataManager with SharedSparkSes
   def runs: Dataset[Run] = spark.table(runsTable).as[Run]
   def statements: Dataset[StatementResult] = spark.table(statementsTable).as[StatementResult]
 
-  def initialize(): SparkRunDataManager = {
+  def initialize(): SparkDataManager = {
     import spark.implicits._
 
     spark.emptyDataset[Run].write.mode(SaveMode.Ignore).saveAsTable(runsTable)
@@ -60,12 +63,12 @@ class SparkRunDataManager(args: Args) extends RunDataManager with SharedSparkSes
   }
 
   override def get(name: String): RunResult = {
-    println(s"TRACE Filter run '$name'")
+    appLogger.trace(s"Filter run '$name'")
     val run: Option[Run] = runs.filter(_.name == name).collect.headOption
 
     run match {
       case Some(run) =>
-        println(s"TRACE Get query results")
+        appLogger.trace(s"Get query results")
         val queryResults: Map[Short, QueryResult] = run.queries.map {
           query =>
             val statementResults: Array[StatementResult] = query
@@ -86,13 +89,25 @@ class SparkRunDataManager(args: Args) extends RunDataManager with SharedSparkSes
     runs.map(_.name).collect
   }
 
-  def getDF(): DataFrame = {
-    // @TODO -> schema: RunId, QueryId, StatementId, ElapsedTime
-    statements.map(s => (s.statement.id, s.elapsedTime)).toDF("statement_id", "elapsed_time")
+  def getDF(name: String): DataFrame = {
+    if (exists(name)) {
+      val run: Dataset[Run] = runs.where('name === name)
+      run.flatMap(
+        r => r.queries.flatMap(
+          q => q.statements.map {
+            s =>
+              val res = statements.where('id === s.id).head
+              (r.name, q.id, s.id, res.elapsedTime)
+          }
+        )
+      ).toDF("run", "query", "statement", "elapsed_time")
+    } else {
+      throw new RuntimeException(s"Run '$name' does not exist!")
+    }
   }
 }
 
-object SparkRunDataManager {
-  def apply(args: Args): SparkRunDataManager = new SparkRunDataManager(args).initialize()
+object SparkDataManager {
+  def apply(args: Args): SparkDataManager = new SparkDataManager(args).initialize()
 }
 

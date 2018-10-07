@@ -10,3 +10,7 @@ libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.3.1"
 libraryDependencies += "org.apache.spark" %% "spark-hive" % "2.3.1"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+
+libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0"
+libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.11.1"
+libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.11.1"

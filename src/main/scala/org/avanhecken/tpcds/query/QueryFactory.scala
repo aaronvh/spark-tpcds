@@ -1,8 +1,11 @@
 package org.avanhecken.tpcds.query
 
 import java.io.File
+
 import org.avanhecken.tpcds.ArgumentParser.Args
+import org.avanhecken.tpcds.SparkTPCDS
 import org.avanhecken.tpcds.statement.Statement
+
 import scala.io.{Codec, Source}
 
 /**

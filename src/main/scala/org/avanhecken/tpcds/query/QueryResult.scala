@@ -27,7 +27,3 @@ case class QueryResult(query: Query, statementResults: Array[StatementResult]) {
     true
   }
 }
-
-//case object QueryResult {
-//  def empty(query: Query): QueryResult = QueryResult(query, query.statements.map(StatementResult(_, None, None)))
-//}

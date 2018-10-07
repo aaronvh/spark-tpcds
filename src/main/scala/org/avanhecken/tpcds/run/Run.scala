@@ -1,31 +1,34 @@
 package org.avanhecken.tpcds.run
 
 import org.joda.time.{DateTime, DateTimeZone}
-import org.avanhecken.tpcds.SharedSparkSession
+import org.avanhecken.tpcds.{SharedSparkSession, SparkTPCDS}
 import org.avanhecken.tpcds.query._
 import org.avanhecken.tpcds.ArgumentParser.Args
+import org.avanhecken.tpcds.dataManager.DataManager
 
 case class Run(name: String, description: String, database: String, executionDateTime: Long, sparkConfig: Map[String, String], queries: Array[Query]) extends SharedSparkSession {
-  def execute(runDataManager: RunDataManager): Unit = {
-    def validateRun(run: Run, runDataManager: RunDataManager): Run = {
+  private val appLogger = SparkTPCDS.appLogger
+
+  def execute(runDataManager: DataManager): Unit = {
+    def validateRun(run: Run, runDataManager: DataManager): Run = {
       if (runDataManager.exists(run.name)) {
         throw new RuntimeException("Run already exists!")
       } else {
-        println(s"TRACE The run '${run.name}' does not exist.")
+        appLogger.trace(s"The run '${run.name}' does not exist.")
         run
       }
     }
 
     val validRun: Run = validateRun(this, runDataManager)
 
-    println(s"DEBUG Saving run '$name' ...")
+    appLogger.debug(s"Saving run '$name' ...")
     runDataManager.save(validRun)
-    println(s"DEBUG Saved run '$name'.")
+    appLogger.debug(s"Saved run '$name'.")
 
-    println(s"INFO Start run '$name' ...")
+    appLogger.info(s"Start run '$name' ...")
     spark.sql(s"use $database")
     queries.foreach(_.execute(runDataManager))
-    println(s"INFO Finished run '$name'.")
+    appLogger.info(s"Finished run '$name'.")
   }
 }
 
