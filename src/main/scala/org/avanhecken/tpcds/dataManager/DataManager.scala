@@ -5,14 +5,6 @@ import org.avanhecken.tpcds.statement.StatementResult
 
 trait DataManager {
   /**
-    *  Check if the name of the run does not correspond to an already existing one.
-    *
-    * @param name
-    * @return true if the run name exists
-    */
-  def exists(name: String): Boolean
-
-  /**
     * Save the run if it does not exists.
     *
     * @param statementResult
@@ -39,5 +31,5 @@ trait DataManager {
     *
     * @return the names of all the runs
     */
-  def getNames(): Array[String]
+  def getNames: Array[String]
 }

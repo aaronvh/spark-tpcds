@@ -26,7 +26,6 @@ case class Statement(id: String, text: String) extends SharedSparkSession with L
       logger.debug(s"Print result:")
       result.foreach(r => logger.info(r.mkString(" | ")))
       logger.debug(s"Result count is '${result.size}'")
-      logger.debug(s"Statement '$id' finished.")
       listener.getStatementResult
     } catch {
       case e: Exception =>

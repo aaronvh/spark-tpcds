@@ -34,21 +34,15 @@ class SparkDataManager(args: Args) extends DataManager with SharedSparkSession w
   def runs: Dataset[Run] = spark.table(runsTable).as[Run]
   def statements: Dataset[StatementResult] = spark.table(statementsTable).as[StatementResult]
 
-  def initialize(): SparkDataManager = {
-    import spark.implicits._
+  spark.emptyDataset[Run].write.mode(SaveMode.Ignore).saveAsTable(runsTable)
+  spark.emptyDataset[StatementResult].write.mode(SaveMode.Ignore).saveAsTable(statementsTable)
 
-    spark.emptyDataset[Run].write.mode(SaveMode.Ignore).saveAsTable(runsTable)
-    spark.emptyDataset[StatementResult].write.mode(SaveMode.Ignore).saveAsTable(statementsTable)
-
-    this
-  }
-
-  override def exists(name: String): Boolean = {
+  private def runExists(name: String): Boolean = {
     !(runs.filter(_.name == name).count() == 0)
   }
 
   override def save(run: Run): Unit = {
-    if (exists(run.name)) {
+    if (runExists(run.name)) {
       throw new RuntimeException(s"Run '${run.name}' already exists!")
     } else {
       val ds: Dataset[Run] = List(run).toDS
@@ -56,9 +50,17 @@ class SparkDataManager(args: Args) extends DataManager with SharedSparkSession w
     }
   }
 
+  private def statementResultExists(id: String): Boolean = {
+    !(statements.filter(_.statement.id == id).count == 0)
+  }
+
   override def save(statementResult: StatementResult): Unit = {
-    val ds: Dataset[StatementResult] = List(statementResult).toDS
-    ds.write.insertInto(statementsTable)
+    if (statementResultExists(statementResult.statement.id)) {
+      throw new RuntimeException(s"StatementResult '${statementResult.statement.id}' already exists!")
+    } else {
+      val ds: Dataset[StatementResult] = List(statementResult).toDS
+      ds.write.insertInto(statementsTable)
+    }
   }
 
   override def get(name: String): RunResult = {
@@ -89,7 +91,7 @@ class SparkDataManager(args: Args) extends DataManager with SharedSparkSession w
   }
 
   def getDF(name: String): DataFrame = {
-    if (exists(name)) {
+    if (runExists(name)) {
       val run: Dataset[Run] = runs.where('name === name)
       run.flatMap(
         r => r.queries.flatMap(
@@ -107,8 +109,8 @@ class SparkDataManager(args: Args) extends DataManager with SharedSparkSession w
 }
 
 object SparkDataManager {
-  def apply(args: Args): SparkDataManager = new SparkDataManager(args).initialize()
+  def apply(args: Args): SparkDataManager = new SparkDataManager(args)
 
-  def apply(database: String): SparkDataManager = new SparkDataManager(Map("database" -> database)).initialize()
+  def apply(database: String): SparkDataManager = new SparkDataManager(Map("database" -> database))
 }
 

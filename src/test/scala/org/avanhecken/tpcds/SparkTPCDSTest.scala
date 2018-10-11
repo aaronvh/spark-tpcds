@@ -5,7 +5,7 @@ import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 class SparkTPCDSTest extends FlatSpec with Matchers with BeforeAndAfterAll with SharedSparkSession {
   val database: String = "tpcds"
   val runsTable: String = s"$database.spark_tpcds_runs"
-  val runsSummaryTable: String = s"$database.spark_tpcds_runs_summary"
+  val statementsTable: String = s"$database.spark_tpcds_statements"
 
   val resourceLocation: String = getClass.getResource("/").getPath
 
@@ -14,7 +14,7 @@ class SparkTPCDSTest extends FlatSpec with Matchers with BeforeAndAfterAll with 
 
     spark.sql(s"create database if not exists $database")
     spark.sql(s"drop table if exists $runsTable")
-    spark.sql(s"drop table if exists $runsSummaryTable")
+    spark.sql(s"drop table if exists $statementsTable")
 
     import spark.implicits._
     spark.sql(s"drop table if exists $database.test1")

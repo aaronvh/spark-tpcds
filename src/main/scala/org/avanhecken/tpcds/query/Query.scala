@@ -1,7 +1,6 @@
 package org.avanhecken.tpcds.query
 
 import com.typesafe.scalalogging.LazyLogging
-import org.avanhecken.tpcds.SparkTPCDS
 import org.avanhecken.tpcds.dataManager.DataManager
 import org.avanhecken.tpcds.statement.Statement
 
@@ -10,9 +9,8 @@ import org.avanhecken.tpcds.statement.Statement
   *
   * @param id
   * @param businessQuestion
-  * @param sqlFileLocation
-  * @param answerFileLocation
   * @param queryClass
+  *
   */
 case class Query(id: Short, businessQuestion: String, queryClass: QueryClass, statements: Array[Statement]) extends LazyLogging {
   def execute(runDataManager: DataManager): Unit = {

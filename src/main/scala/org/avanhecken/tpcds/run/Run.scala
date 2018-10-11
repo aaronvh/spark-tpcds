@@ -9,19 +9,20 @@ import org.avanhecken.tpcds.dataManager.DataManager
 
 case class Run(name: String, description: String, database: String, executionDateTime: Long, sparkConfig: Map[String, String], queries: Array[Query]) extends SharedSparkSession with LazyLogging {
   def execute(runDataManager: DataManager): Unit = {
-    def validateRun(run: Run, runDataManager: DataManager): Run = {
-      if (runDataManager.exists(run.name)) {
-        throw new RuntimeException("Run already exists!")
-      } else {
-        logger.trace(s"The run '${run.name}' does not exist.")
-        run
-      }
-    }
+//    def validateRun(run: Run, runDataManager: DataManager): Run = {
+//      if (runDataManager.exists(run.name)) {
+//        throw new RuntimeException("Run already exists!")
+//      } else {
+//        logger.trace(s"The run '${run.name}' does not exist.")
+//        run
+//      }
+//    }
 
-    val validRun: Run = validateRun(this, runDataManager)
+//    val validRun: Run = validateRun(this, runDataManager)
 
     logger.debug(s"Saving run '$name' ...")
-    runDataManager.save(validRun)
+//    runDataManager.save(validRun)
+    runDataManager.save(this)
     logger.debug(s"Saved run '$name'.")
 
     logger.info(s"Start run '$name' ...")

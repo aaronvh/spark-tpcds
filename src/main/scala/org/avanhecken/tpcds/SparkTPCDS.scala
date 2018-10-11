@@ -32,10 +32,10 @@ object SparkTPCDS extends LazyLogging {
   def list(runDataManager: DataManager): Unit = {
     val dateTimeFormatter: DateTimeFormatter =  DateTimeFormat.forPattern("dd/MM/yyyy hh:mm:ss")
 
-    runDataManager.getNames().foreach{
+    runDataManager.getNames.foreach{
       name =>
         val executionDateTime: DateTime = new DateTime(runDataManager.get(name).run.executionDateTime)
-        logger.info("%-25s %25s\n", name, dateTimeFormatter.print(executionDateTime))
+        logger.info(f"$name%-25s ${dateTimeFormatter.print(executionDateTime)}%25s")
     }
   }
 
