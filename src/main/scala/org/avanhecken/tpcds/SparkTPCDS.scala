@@ -14,12 +14,12 @@ object SparkTPCDS extends LazyLogging {
       val parsedArgs: Args = ArgumentParser.parse(args)
 
       /** For now the Spark run data manager is used. */
-      val runDataManager: DataManager = SparkDataManager(parsedArgs)
+      val dataManager: DataManager = SparkDataManager(parsedArgs)
 
       parsedArgs("command") match {
-        case "list" => list(runDataManager)
-        case "execute" => execute(runDataManager, parsedArgs)
-        case "compare" => compare(runDataManager, parsedArgs)
+        case "list" => list(dataManager)
+        case "execute" => execute(dataManager, parsedArgs)
+        case "compare" => compare(dataManager, parsedArgs)
       }
     } catch {
       case e: Exception =>

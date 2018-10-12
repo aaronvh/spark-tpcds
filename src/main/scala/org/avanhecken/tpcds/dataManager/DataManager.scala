@@ -3,7 +3,7 @@ package org.avanhecken.tpcds.dataManager
 import org.avanhecken.tpcds.run.{Run, RunResult}
 import org.avanhecken.tpcds.statement.StatementResult
 
-trait DataManager {
+trait DataManager extends Serializable {
   /**
     * Save the run if it does not exists.
     *
