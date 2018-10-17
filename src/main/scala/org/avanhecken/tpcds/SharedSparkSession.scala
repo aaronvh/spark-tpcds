@@ -3,10 +3,12 @@ package org.avanhecken.tpcds
 import org.apache.spark.sql.SparkSession
 
 trait SharedSparkSession {
-  val spark = SparkSession.builder
+  @transient lazy val spark = SparkSession
+    .builder
     .appName("SparkPerformanceTester")
     .enableHiveSupport()
+    .config("spark.sql.crossJoin.enabled", "true")
     .getOrCreate()
 
-  val sc = spark.sparkContext
+  @transient lazy val sc = spark.sparkContext
 }

@@ -1,29 +1,29 @@
 package org.avanhecken.tpcds
 
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.SparkSession
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest.Matchers
 
-class SparkTPCDSTest extends FlatSpec with Matchers with BeforeAndAfterAll {
-  var spark: SparkSession = _
-  var sparkContext: SparkContext = _
+class SparkTPCDSTest extends SparkFlatSpec with Matchers {
+  "execute" should "run first query successfully" in {
+    SparkTPCDS.main(Array("execute", "test", "Test if query 1 runs successfully", "tpcds", resourceLocation, "1"))
 
-  override def beforeAll(): Unit = {
-    spark = SparkSession.builder
-      .appName("SparkTPCDSTest")
-      .master("local")
-      .enableHiveSupport()
-      .getOrCreate()
+    spark.table(runsTable).show(false)
   }
 
-  override def afterAll(): Unit = {
-    spark.close()
+  "list" should "print out the names of all runs" in {
+    SparkTPCDS.main(Array("execute", "test1", "Test1 if query 1 runs successfully", "tpcds", resourceLocation, "1"))
+    SparkTPCDS.main(Array("execute", "test2", "Test2 if query 1 runs successfully", "tpcds", resourceLocation, "2"))
+    SparkTPCDS.main(Array("list", "tpcds"))
   }
 
-  "benchmark" should "run first query successfully" in {
-    SparkTPCDS.main(Array("test", "Test if query 1 runs successfully", "tpcds", "1"))
+  "compare" should "print out the comparison between two equal runs" in {
+    SparkTPCDS.main(Array("execute", "test3", "Test3 if query 1 runs successfully", "tpcds", resourceLocation, "1"))
+    SparkTPCDS.main(Array("execute", "test4", "Test4 if query 1 runs successfully", "tpcds", resourceLocation, "1"))
+    SparkTPCDS.main(Array("compare", "tpcds", "test3", "test4"))
+  }
 
-    //spark.table("tpcds.spark_tpcds_runs").show(false)
-    spark.table("tpcds.spark_tpcds_runs_summary").show(false)
+  it should "print out the comparison between two non-equal runs" in {
+    SparkTPCDS.main(Array("execute", "test5", "Test5 if query 1 runs successfully", "tpcds", resourceLocation, "1"))
+    SparkTPCDS.main(Array("execute", "test6", "Test6 if query 1 runs successfully", "tpcds", resourceLocation, "2"))
+    SparkTPCDS.main(Array("compare", "tpcds", "test5", "test6"))
   }
 }

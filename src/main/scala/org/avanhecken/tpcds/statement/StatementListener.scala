@@ -11,8 +11,16 @@ class StatementListener(statement: Statement) extends SparkListener {
     event match {
       case e: SparkListenerSQLExecutionStart => startEvent = Some(e)
       case e: SparkListenerSQLExecutionEnd => endEvent= Some(e)
+      case _ =>
     }
   }
 
-  def getStatementResult(): StatementResult = StatementResult(statement, startEvent, endEvent)
+  def getStatementResult: StatementResult = StatementResult(
+    statement,
+    startEvent.map(_.time).getOrElse(-1L),
+    endEvent.map(_.time).getOrElse(-1L),
+    startEvent.map(_.description).getOrElse(""),
+    startEvent.map(_.details).getOrElse(""),
+    startEvent.map(_.physicalPlanDescription).getOrElse("")
+  )
 }

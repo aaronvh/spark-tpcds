@@ -1,40 +1,45 @@
 package org.avanhecken.tpcds.run
 
-import org.avanhecken.tpcds.SharedSparkSession
-import org.avanhecken.tpcds.query._
+import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.{DateTime, DateTimeZone}
+import org.avanhecken.tpcds.{SharedSparkSession, SparkTPCDS}
+import org.avanhecken.tpcds.query._
+import org.avanhecken.tpcds.ArgumentParser.Args
+import org.avanhecken.tpcds.dataManager.DataManager
 
-import scala.org.avanhecken.tpcds.ArgumentParser.Args
+case class Run(name: String, description: String, database: String, executionDateTime: Long, sparkConfig: Map[String, String], queries: Array[Query]) extends SharedSparkSession with LazyLogging {
+  def execute(runDataManager: DataManager): Unit = {
+//    def validateRun(run: Run, runDataManager: DataManager): Run = {
+//      if (runDataManager.exists(run.name)) {
+//        throw new RuntimeException("Run already exists!")
+//      } else {
+//        logger.trace(s"The run '${run.name}' does not exist.")
+//        run
+//      }
+//    }
 
-class Run(val name: String, description: String, executionDate: DateTime, runDataManager: RunDataManager, args: Args) extends SharedSparkSession {
-  val queries: Array[Query] = QueryFactory.generateQueries(args)
+//    val validRun: Run = validateRun(this, runDataManager)
 
-  def execute(): Unit = {
-    val database: String = args("db")
+    logger.debug(s"Saving run '$name' ...")
+//    runDataManager.save(validRun)
+    runDataManager.save(this)
+    logger.debug(s"Saved run '$name'.")
 
+    logger.info(s"Start run '$name' ...")
     spark.sql(s"use $database")
-
-    val runResult = RunResult(
-      this,
-      queries.map {
-        query =>
-          print(s"Running query => ${query.id} ... ")
-          (query.id, query.execute())
-      }.toMap
-    )
-
-    /** Store the run results using a DataManager. */
-    runDataManager.save(runResult)
+    queries.foreach(_.execute(runDataManager))
+    logger.info(s"Finished run '$name'.")
   }
 }
 
-object Run {
+case object Run extends SharedSparkSession {
   def apply(args: Args): Run = {
-    val name = args("name")
-    val description = args("description")
-    val executionDateTime = DateTime.now(DateTimeZone.forID("Europe/Brussels"))
+    val name: String = args("name")
+    val description: String = args("description")
+    val database: String = args("database")
+    val executionDateTime: Long = DateTime.now(DateTimeZone.forID("Europe/Brussels")).getMillis
+    val queries: Array[Query] = QueryFactory.generateQueries(name, args)
 
-    /** For now the Spark run data manager is used. */
-    new Run(name, description, executionDateTime, SparkRunDataManager(args), args)
+    Run(name, description, database, executionDateTime, spark.conf.getAll, queries)
   }
 }

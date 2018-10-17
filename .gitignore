@@ -1,3 +1,6 @@
+.idea/
 derby.log
 metastore_db/
 target/
+lib/
+spark-warehouse/
