@@ -38,7 +38,7 @@ case object Run extends SharedSparkSession {
     val description: String = args("description")
     val database: String = args("database")
     val executionDateTime: Long = DateTime.now(DateTimeZone.forID("Europe/Brussels")).getMillis
-    val queries: Array[Query] = QueryFactory.generateQueries(name, args)
+    val queries: Array[Query] = new QueryFactory(args).generateQueries(name)
 
     Run(name, description, database, executionDateTime, spark.conf.getAll, queries)
   }

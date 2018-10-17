@@ -59,7 +59,7 @@ class SparkDataManager(args: Args) extends DataManager with SharedSparkSession w
     run match {
       case Some(run) =>
         logger.trace(s"Get query results")
-        val queryResults: Map[Short, QueryResult] = run.queries.map {
+        val queryResults: Map[String, QueryResult] = run.queries.map {
           query =>
             val statementResults: Array[StatementResult] = query
               .statements

@@ -12,7 +12,7 @@ import org.avanhecken.tpcds.statement.Statement
   * @param queryClass
   *
   */
-case class Query(id: Short, businessQuestion: String, queryClass: QueryClass, statements: Array[Statement]) extends LazyLogging {
+case class Query(id: String, businessQuestion: String, queryClass: String, statements: Array[Statement]) extends LazyLogging {
   def execute(runDataManager: DataManager): Unit = {
     logger.info(s"Run query '$id' ... ")
     statements.foreach(_.execute(runDataManager))

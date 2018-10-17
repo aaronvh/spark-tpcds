@@ -47,8 +47,8 @@ object SparkTPCDS extends LazyLogging {
     val name1: String = args("name1")
     val name2: String = args("name2")
 
-    val queryResults1: Map[Short, QueryResult] = runDataManager.get(name1).queryResults
-    val queryResults2: Map[Short, QueryResult] = runDataManager.get(name2).queryResults
+    val queryResults1: Map[String, QueryResult] = runDataManager.get(name1).queryResults
+    val queryResults2: Map[String, QueryResult] = runDataManager.get(name2).queryResults
     val allKeys = (queryResults1.keySet ++ queryResults2.keySet).toArray.sorted
 
     allKeys.foreach {
