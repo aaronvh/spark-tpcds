@@ -13,18 +13,25 @@ class SparkDataManager(args: Args) extends DataManager with SharedSparkSession w
   import spark.implicits._
 
   val database: String = args("database")
-  spark.sql(s"create database if not exists $database")
 
   val runsName: String = args.getOrElse("runs", "spark_tpcds_runs")
   val runsTable: String = s"$database.$runsName"
   val statementsName: String = args.getOrElse("statements", "spark_tpcds_statements")
   val statementsTable: String = s"$database.$statementsName"
 
-  def runs: Dataset[Run] = spark.table(runsTable).as[Run]
-  def statements: Dataset[StatementResult] = spark.table(statementsTable).as[StatementResult]
+  def initialize: Unit = {
+    logger.trace(s"Create database '$database' if not exists")
+    spark.sql(s"create database if not exists $database")
 
-  spark.emptyDataset[Run].write.mode(SaveMode.Ignore).saveAsTable(runsTable)
-  spark.emptyDataset[StatementResult].write.mode(SaveMode.Ignore).saveAsTable(statementsTable)
+    logger.trace(s"Create empty '$runsTable' if not exists")
+    spark.emptyDataset[Run].write.mode(SaveMode.Ignore).saveAsTable(runsTable)
+    logger.trace(s"Create empty '$statementsTable' if not exists")
+    spark.emptyDataset[StatementResult].write.mode(SaveMode.Ignore).saveAsTable(statementsTable)
+  }
+
+  def runs: Dataset[Run] = spark.table(runsTable).as[Run]
+
+  def statements: Dataset[StatementResult] = spark.table(statementsTable).as[StatementResult]
 
   private def runExists(name: String): Boolean = {
     !(runs.filter(_.name == name).count() == 0)
@@ -99,6 +106,10 @@ class SparkDataManager(args: Args) extends DataManager with SharedSparkSession w
 }
 
 object SparkDataManager {
-  def apply(args: Args): SparkDataManager = new SparkDataManager(args)
+  def apply(args: Args): SparkDataManager = {
+    val dm = new SparkDataManager(args)
+    dm.initialize
+    dm
+  }
 }
 

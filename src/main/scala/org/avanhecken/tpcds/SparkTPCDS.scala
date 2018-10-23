@@ -29,13 +29,19 @@ object SparkTPCDS extends LazyLogging {
     }
   }
 
-  def list(runDataManager: DataManager): Unit = {
+  def list(dataManager: DataManager): Unit = {
     val dateTimeFormatter: DateTimeFormatter =  DateTimeFormat.forPattern("dd/MM/yyyy hh:mm:ss")
 
-    runDataManager.getNames.foreach{
-      name =>
-        val executionDateTime: DateTime = new DateTime(runDataManager.get(name).run.executionDateTime)
-        logger.info(f"$name%-25s ${dateTimeFormatter.print(executionDateTime)}%25s")
+    val names = dataManager.getNames
+
+    if (names.isEmpty)
+      logger.info("No runs found.")
+    else {
+      names.foreach {
+        name =>
+          val executionDateTime: DateTime = new DateTime(dataManager.get(name).run.executionDateTime)
+          logger.info(f"$name%-25s ${dateTimeFormatter.print(executionDateTime)}%25s")
+      }
     }
   }
 

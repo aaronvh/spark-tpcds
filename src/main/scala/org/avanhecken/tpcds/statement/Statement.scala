@@ -13,7 +13,7 @@ case class Statement(id: String, text: String) extends SharedSparkSession with L
     val statementResult = try {
       logger.trace("Add listener.")
       sc.addSparkListener(listener)
-      logger.debug(s"Execute statement '$id' ...")
+      logger.info(s"Execute statement '$id' ...")
       /** Collect the result, it can be used to compare with the expected answer test and determine if the count is correct.
         * Downside, possible OoM issues!
         * Maybe another action will be preferred in the future.
@@ -22,14 +22,14 @@ case class Statement(id: String, text: String) extends SharedSparkSession with L
         * - count -> Unable to compare with the answer tests.
         */
       val result: Array[Row] = spark.sql(text).collect
-      logger.debug(s"Statement '$id' finished.")
+      logger.info(s"Statement '$id' finished.")
       logger.debug(s"Print result:")
-      result.foreach(r => logger.info(r.mkString(" | ")))
+      result.foreach(r => logger.debug(r.mkString(" | ")))
       logger.debug(s"Result count is '${result.size}'")
       listener.getStatementResult
     } catch {
       case e: Exception =>
-        logger.debug(s"Statement '$id' failed!")
+        logger.error(s"Statement '$id' failed!")
         logger.error(s"${e.getMessage}\n${e.printStackTrace()}") // Same at main method!
         StatementResult(this)
     } finally {
